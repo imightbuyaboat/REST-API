@@ -23,17 +23,23 @@ func TestCreateTaskHandler(t *testing.T) {
 	mockCache := &MockTaskCache{}
 	h := &Handler{DB: mockDB, Cache: mockCache}
 
+	type taskInfo struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
+
 	tests := []struct {
 		name             string
-		input            bt.Task
+		inputID          int
+		inputInfo        taskInfo
 		mockAddTaskError error
 		expectedStatus   int
 		expectedResponse bt.Task
 	}{
 		{
-			name: "Succesfully create task",
-			input: bt.Task{
-				ID:          1,
+			name:    "Succesfully create task",
+			inputID: 1,
+			inputInfo: taskInfo{
 				Name:        "Test Task",
 				Description: "Test Description",
 			},
@@ -46,9 +52,9 @@ func TestCreateTaskHandler(t *testing.T) {
 			},
 		},
 		{
-			name: "Task already exists",
-			input: bt.Task{
-				ID:          1,
+			name:    "Task already exists",
+			inputID: 1,
+			inputInfo: taskInfo{
 				Name:        "Test Task",
 				Description: "Test Description",
 			},
@@ -57,9 +63,9 @@ func TestCreateTaskHandler(t *testing.T) {
 			expectedResponse: bt.Task{},
 		},
 		{
-			name: "Invalid request body",
-			input: bt.Task{
-				ID:          0,
+			name:    "Invalid request body",
+			inputID: 0,
+			inputInfo: taskInfo{
 				Name:        "",
 				Description: "",
 			},
@@ -71,15 +77,21 @@ func TestCreateTaskHandler(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			id := strconv.Itoa(tt.inputID)
+
 			mockDB.ExpectedCalls = nil
 			mockDB.On("AddTask", mock.AnythingOfType("*basic_types.Task")).Return(tt.mockAddTaskError)
 
-			body, _ := json.Marshal(tt.input)
+			body, _ := json.Marshal(tt.inputInfo)
 
-			req, err := http.NewRequest("POST", "/task/", bytes.NewReader(body))
+			req, err := http.NewRequest("POST", "/task/"+id+"/", bytes.NewReader(body))
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			req = mux.SetURLVars(req, map[string]string{
+				"id": id,
+			})
 
 			rr := httptest.NewRecorder()
 			h.CreateTaskHandler(rr, req)
@@ -279,6 +291,116 @@ func TestGetAllTasksHandler(t *testing.T) {
 				}
 
 				if !reflect.DeepEqual(responseTask, tt.expectedResponse) {
+					t.Errorf("Expected response %v, got %v", tt.expectedResponse, responseTask)
+				}
+			}
+		})
+	}
+}
+
+func TestUpdateTaskHandler(t *testing.T) {
+	mockDB := &MockTaskStore{}
+	mockCache := &MockTaskCache{}
+	h := &Handler{DB: mockDB, Cache: mockCache}
+
+	type taskInfo struct {
+		Name        string `json:"name"`
+		Description string `json:"description"`
+	}
+
+	tests := []struct {
+		name              string
+		inputID           int
+		inputInfo         taskInfo
+		cachedDeleteError error
+		dbTask            *bt.Task
+		dbUpdateError     error
+		expectedStatus    int
+		expectedResponse  bt.Task
+	}{
+		{
+			name:    "Succesfully update task",
+			inputID: 1,
+			inputInfo: taskInfo{
+				Name:        "Test Task",
+				Description: "Test Description",
+			},
+			cachedDeleteError: nil,
+			dbTask: &bt.Task{
+				ID:          1,
+				Name:        "Test Task",
+				Description: "Test Description",
+			},
+			dbUpdateError:  nil,
+			expectedStatus: http.StatusOK,
+			expectedResponse: bt.Task{
+				ID:          1,
+				Name:        "Test Task",
+				Description: "Test Description",
+			},
+		},
+		{
+			name:    "Invalid request body",
+			inputID: 0,
+			inputInfo: taskInfo{
+				Name:        "",
+				Description: "",
+			},
+			cachedDeleteError: nil,
+			dbTask:            nil,
+			dbUpdateError:     nil,
+			expectedStatus:    http.StatusBadRequest,
+			expectedResponse:  bt.Task{},
+		},
+		{
+			name:    "Task not found",
+			inputID: 100,
+			inputInfo: taskInfo{
+				Name:        "Test Task",
+				Description: "Test Description",
+			},
+			cachedDeleteError: nil,
+			dbTask:            nil,
+			dbUpdateError:     db.ErrTaskNotFound,
+			expectedStatus:    http.StatusNotFound,
+			expectedResponse:  bt.Task{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			id := strconv.Itoa(tt.inputID)
+
+			mockCache.ExpectedCalls = nil
+			mockCache.On("Delete", tt.inputID).Return(tt.cachedDeleteError)
+
+			mockDB.ExpectedCalls = nil
+			mockDB.On("UpdateTask", mock.AnythingOfType("*basic_types.Task")).Return(tt.dbTask, tt.dbUpdateError)
+
+			body, _ := json.Marshal(tt.inputInfo)
+
+			req, err := http.NewRequest("PUT", "/task/"+id+"/", bytes.NewReader(body))
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			req = mux.SetURLVars(req, map[string]string{
+				"id": id,
+			})
+
+			rr := httptest.NewRecorder()
+			h.UpdateTaskHandler(rr, req)
+
+			if rr.Code != tt.expectedStatus {
+				t.Errorf("Expected status %d, got %d", tt.expectedStatus, rr.Code)
+			}
+
+			if tt.expectedStatus == http.StatusOK {
+				var responseTask bt.Task
+				if err := json.NewDecoder(rr.Body).Decode(&responseTask); err != nil {
+					t.Fatal(err)
+				}
+				if responseTask != tt.expectedResponse {
 					t.Errorf("Expected response %v, got %v", tt.expectedResponse, responseTask)
 				}
 			}

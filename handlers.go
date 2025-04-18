@@ -36,11 +36,20 @@ func NewHandler() (*Handler, error) {
 
 func (h *Handler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task bt.Task
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		return
+	}
+
 	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
 		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
 		return
 	}
 	defer r.Body.Close()
+
+	task.ID = id
 
 	if task.ID == 0 || task.Name == "" || task.Description == "" {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)
@@ -84,8 +93,7 @@ func (h *Handler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = h.Cache.Set(task)
-		if err != nil {
+		if err = h.Cache.Set(task); err != nil {
 			log.Printf("Failed to insert to cache: %v", err)
 		}
 	}
@@ -119,6 +127,47 @@ func (h *Handler) GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func (h *Handler) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
+	var task bt.Task
+
+	id, err := strconv.Atoi(mux.Vars(r)["id"])
+	if err != nil {
+		http.Error(w, "Invalid task ID", http.StatusBadRequest)
+		return
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&task); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	task.ID = id
+
+	if task.ID == 0 || task.Name == "" || task.Description == "" {
+		http.Error(w, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	updatedTask, err := h.DB.UpdateTask(&task)
+	if err != nil {
+		if errors.Is(err, db.ErrTaskNotFound) {
+			http.Error(w, fmt.Sprintf("Task %d not found", task.ID), http.StatusNotFound)
+		} else {
+			http.Error(w, fmt.Sprintf("Failed to update task in DB: %v", err), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if err = h.Cache.Delete(task.ID); err != nil {
+		log.Printf("Failed to delete from cache: %v", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedTask)
+}
+
 func (h *Handler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(mux.Vars(r)["id"])
 	if err != nil {
@@ -136,8 +185,7 @@ func (h *Handler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.Cache.Delete(id)
-	if err != nil {
+	if err = h.Cache.Delete(id); err != nil {
 		log.Printf("Failed to delete from cache: %v", err)
 	}
 

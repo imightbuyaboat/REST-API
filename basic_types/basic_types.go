@@ -10,6 +10,7 @@ type TaskStore interface {
 	AddTask(task *Task) error
 	GetTask(id int) (*Task, error)
 	GetAllTasks() ([]Task, error)
+	UpdateTask(task *Task) (*Task, error)
 	DeleteTask(id int) error
 }
 

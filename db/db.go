@@ -97,6 +97,27 @@ func (ps *PostgresStore) GetAllTasks() ([]bt.Task, error) {
 	return tasks, nil
 }
 
+func (ps *PostgresStore) UpdateTask(task *bt.Task) (*bt.Task, error) {
+	var exists bool
+	query := "select EXISTS (select 1 from tasks where id = $1)"
+	err := ps.DB.QueryRow(query, task.ID).Scan(&exists)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if task %d exists: %v", task.ID, err)
+	}
+	if !exists {
+		return nil, ErrTaskNotFound
+	}
+
+	query = "update tasks set name = $1, description = $2 where id = $3 returning id, name, description"
+	var updatedTask bt.Task
+
+	err = ps.DB.QueryRow(query, task.Name, task.Description, task.ID).Scan(&updatedTask.ID, &updatedTask.Name, &updatedTask.Description)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update task %d: %v", task.ID, err)
+	}
+	return &updatedTask, nil
+}
+
 func (ps *PostgresStore) DeleteTask(taskID int) error {
 	query := "delete from tasks where id = $1"
 

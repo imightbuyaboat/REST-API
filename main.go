@@ -17,6 +17,7 @@ func main() {
 	r.HandleFunc("/task/", h.CreateTaskHandler).Methods("POST")
 	r.HandleFunc("/task/{id:[0-9]+}/", h.GetTaskHandler).Methods("GET")
 	r.HandleFunc("/task/", h.GetAllTasksHandler).Methods("GET")
+	r.HandleFunc("/task/{id:[0-9]+}/", h.UpdateTaskHandler).Methods("PUT")
 	r.HandleFunc("/task/{id:[0-9]+}/", h.DeleteTaskHandler).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":8080", r))

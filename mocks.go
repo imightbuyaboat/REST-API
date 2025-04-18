@@ -30,6 +30,11 @@ func (m *MockTaskStore) DeleteTask(id int) error {
 	return args.Error(0)
 }
 
+func (m *MockTaskStore) UpdateTask(task *bt.Task) (*bt.Task, error) {
+	args := m.Called(task)
+	return args.Get(0).(*bt.Task), args.Error(1)
+}
+
 type MockTaskCache struct {
 	mock.Mock
 }
