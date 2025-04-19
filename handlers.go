@@ -98,15 +98,9 @@ func (h *Handler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	js, err := json.Marshal(task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(js)
+	json.NewEncoder(w).Encode(task)
 }
 
 func (h *Handler) GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
@@ -116,15 +110,9 @@ func (h *Handler) GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	js, err := json.Marshal(tasks)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(js)
+	json.NewEncoder(w).Encode(tasks)
 }
 
 func (h *Handler) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
