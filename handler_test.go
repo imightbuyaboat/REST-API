@@ -84,7 +84,7 @@ func TestCreateTaskHandler(t *testing.T) {
 
 			body, _ := json.Marshal(tt.inputInfo)
 
-			req, err := http.NewRequest("POST", "/task/"+id+"/", bytes.NewReader(body))
+			req, err := http.NewRequest("POST", "/tasks/"+id, bytes.NewReader(body))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -187,7 +187,7 @@ func TestGetTaskHandler(t *testing.T) {
 			mockDB.ExpectedCalls = nil
 			mockDB.On("GetTask", id).Return(tt.dbTask, tt.dbGetError)
 
-			req, err := http.NewRequest("GET", "/task/"+tt.taskID+"/", nil)
+			req, err := http.NewRequest("GET", "/tasks/"+tt.taskID, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -272,7 +272,7 @@ func TestGetAllTasksHandler(t *testing.T) {
 			mockDB.ExpectedCalls = nil
 			mockDB.On("GetAllTasks").Return(tt.dbTasks, tt.dbGetError)
 
-			req, err := http.NewRequest("GET", "/task/", nil)
+			req, err := http.NewRequest("GET", "/tasks", nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -379,7 +379,7 @@ func TestUpdateTaskHandler(t *testing.T) {
 
 			body, _ := json.Marshal(tt.inputInfo)
 
-			req, err := http.NewRequest("PUT", "/task/"+id+"/", bytes.NewReader(body))
+			req, err := http.NewRequest("PUT", "/tasks/"+id, bytes.NewReader(body))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -446,7 +446,7 @@ func TestDeleteTaskHandler(t *testing.T) {
 			mockDB.ExpectedCalls = nil
 			mockDB.On("DeleteTask", id).Return(tt.dbDeleteError)
 
-			req, err := http.NewRequest("Delete", "/task/"+tt.taskID+"/", nil)
+			req, err := http.NewRequest("DELETE", "/tasks/"+tt.taskID, nil)
 			if err != nil {
 				t.Fatal(err)
 			}

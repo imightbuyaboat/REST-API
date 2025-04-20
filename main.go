@@ -14,11 +14,11 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/task/{id:[0-9]+}/", h.CreateTaskHandler).Methods("POST")
-	r.HandleFunc("/task/{id:[0-9]+}/", h.GetTaskHandler).Methods("GET")
-	r.HandleFunc("/task/", h.GetAllTasksHandler).Methods("GET")
-	r.HandleFunc("/task/{id:[0-9]+}/", h.UpdateTaskHandler).Methods("PUT")
-	r.HandleFunc("/task/{id:[0-9]+}/", h.DeleteTaskHandler).Methods("DELETE")
+	r.HandleFunc("/tasks/{id:[0-9]+}", h.CreateTaskHandler).Methods("POST")
+	r.HandleFunc("/tasks/{id:[0-9]+}", h.GetTaskHandler).Methods("GET")
+	r.HandleFunc("/tasks", h.GetAllTasksHandler).Methods("GET")
+	r.HandleFunc("/tasks/{id:[0-9]+}", h.UpdateTaskHandler).Methods("PUT")
+	r.HandleFunc("/tasks/{id:[0-9]+}", h.DeleteTaskHandler).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
