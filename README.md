@@ -12,6 +12,7 @@
 ## Требования
 
 - Go версии 1.16 и выше
+- Docker и Docker-compose
 
 ## Установка и запуск
 
@@ -22,8 +23,30 @@
    cd REST-API
    ```
    
-2. Запустите веб-сервер:
+2. В корне проекта создайте `.env` файл
 
+   ```env
+   SQL_HOST=localhost
+   SQL_PORT=5432
+   SQL_DB=your_data_base
+   SQL_USER=your_user
+   SQL_PASSWORD=your_password
+
+   REDIS_HOST=localhost
+   REDIS_PORT=6379
+   REDIS_PASSWORD=your_password
+   ```
+3. Запустите контейнеры через Docker
+   ```bash
+   docker-compose up --build
+   ```
+
+4. Установите зависимости
+   ```bash
+   go mod download
+   ```
+
+5. Запустите веб-сервер
    ```bash
    go run .
    ```
