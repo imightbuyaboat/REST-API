@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"restapi/auth"
 	bt "restapi/basic_types"
 	cache "restapi/cache"
 	db "restapi/db"
@@ -32,6 +33,43 @@ func NewHandler() (*Handler, error) {
 	}
 
 	return &Handler{DB: ps, Cache: rc}, nil
+}
+
+func (h *Handler) LoginHandler(w http.ResponseWriter, r *http.Request) {
+	var userData db.UserData
+
+	if err := json.NewDecoder(r.Body).Decode(&userData); err != nil {
+		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	userID, err := h.DB.CheckUser(&userData)
+	if err != nil {
+		if errors.Is(err, db.ErrUserNotFound) {
+			http.Error(w, "User not found", http.StatusNotFound)
+			return
+		}
+		if errors.Is(err, db.ErrIncorrectPassword) {
+			http.Error(w, "Incorrect password", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, fmt.Sprintf("Failed to check user: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	token, err := auth.GenerateToken(userID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to generate JWT token: %v", err), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Authorization", "Bearer "+token)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]string{
+		"token": token,
+	})
 }
 
 func (h *Handler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {

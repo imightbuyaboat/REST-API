@@ -10,4 +10,5 @@ type TaskStore interface {
 	GetAllTasks() ([]bt.Task, error)
 	UpdateTask(task *bt.Task) (*bt.Task, error)
 	DeleteTask(id int) error
+	CheckUser(data *UserData) (int, error)
 }

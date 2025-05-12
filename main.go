@@ -16,11 +16,16 @@ func main() {
 	}
 
 	r := mux.NewRouter()
-	r.HandleFunc("/tasks/{id:[0-9]+}", h.CreateTaskHandler).Methods("POST")
-	r.HandleFunc("/tasks/{id:[0-9]+}", h.GetTaskHandler).Methods("GET")
-	r.HandleFunc("/tasks", h.GetAllTasksHandler).Methods("GET")
-	r.HandleFunc("/tasks/{id:[0-9]+}", h.UpdateTaskHandler).Methods("PUT")
-	r.HandleFunc("/tasks/{id:[0-9]+}", h.DeleteTaskHandler).Methods("DELETE")
+	r.HandleFunc("/login", h.LoginHandler).Methods("POST")
+
+	api := r.NewRoute().Subrouter()
+	api.Use(h.AuthorizationMiddleware)
+
+	api.HandleFunc("/tasks/{id:[0-9]+}", h.CreateTaskHandler).Methods("POST")
+	api.HandleFunc("/tasks/{id:[0-9]+}", h.GetTaskHandler).Methods("GET")
+	api.HandleFunc("/tasks", h.GetAllTasksHandler).Methods("GET")
+	api.HandleFunc("/tasks/{id:[0-9]+}", h.UpdateTaskHandler).Methods("PUT")
+	api.HandleFunc("/tasks/{id:[0-9]+}", h.DeleteTaskHandler).Methods("DELETE")
 
 	log.Println("Starting server at :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))

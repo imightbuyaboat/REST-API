@@ -2,6 +2,7 @@ package mocks
 
 import (
 	bt "restapi/basic_types"
+	"restapi/db"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -33,4 +34,9 @@ func (m *MockTaskStore) DeleteTask(id int) error {
 func (m *MockTaskStore) UpdateTask(task *bt.Task) (*bt.Task, error) {
 	args := m.Called(task)
 	return args.Get(0).(*bt.Task), args.Error(1)
+}
+
+func (m *MockTaskStore) CheckUser(data *db.UserData) (int, error) {
+	args := m.Called(data)
+	return args.Get(0).(int), args.Error(1)
 }
