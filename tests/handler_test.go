@@ -1,4 +1,4 @@
-package main
+package tests
 
 import (
 	"bytes"
@@ -10,6 +10,8 @@ import (
 	bt "restapi/basic_types"
 	"restapi/cache"
 	db "restapi/db"
+	"restapi/handler"
+	"restapi/tests/mocks"
 	"strconv"
 	"testing"
 
@@ -19,9 +21,9 @@ import (
 )
 
 func TestCreateTaskHandler(t *testing.T) {
-	mockDB := &MockTaskStore{}
-	mockCache := &MockTaskCache{}
-	h := &Handler{DB: mockDB, Cache: mockCache}
+	mockDB := &mocks.MockTaskStore{}
+	mockCache := &mocks.MockTaskCache{}
+	h := &handler.Handler{DB: mockDB, Cache: mockCache}
 
 	type taskInfo struct {
 		Name        string `json:"name"`
@@ -114,9 +116,9 @@ func TestCreateTaskHandler(t *testing.T) {
 }
 
 func TestGetTaskHandler(t *testing.T) {
-	mockDB := &MockTaskStore{}
-	mockCache := &MockTaskCache{}
-	h := &Handler{DB: mockDB, Cache: mockCache}
+	mockDB := &mocks.MockTaskStore{}
+	mockCache := &mocks.MockTaskCache{}
+	h := &handler.Handler{DB: mockDB, Cache: mockCache}
 
 	tests := []struct {
 		name             string
@@ -218,9 +220,9 @@ func TestGetTaskHandler(t *testing.T) {
 }
 
 func TestGetAllTasksHandler(t *testing.T) {
-	mockDB := &MockTaskStore{}
-	mockCache := &MockTaskCache{}
-	h := &Handler{DB: mockDB, Cache: mockCache}
+	mockDB := &mocks.MockTaskStore{}
+	mockCache := &mocks.MockTaskCache{}
+	h := &handler.Handler{DB: mockDB, Cache: mockCache}
 
 	tests := []struct {
 		name             string
@@ -299,9 +301,9 @@ func TestGetAllTasksHandler(t *testing.T) {
 }
 
 func TestUpdateTaskHandler(t *testing.T) {
-	mockDB := &MockTaskStore{}
-	mockCache := &MockTaskCache{}
-	h := &Handler{DB: mockDB, Cache: mockCache}
+	mockDB := &mocks.MockTaskStore{}
+	mockCache := &mocks.MockTaskCache{}
+	h := &handler.Handler{DB: mockDB, Cache: mockCache}
 
 	type taskInfo struct {
 		Name        string `json:"name"`
@@ -409,9 +411,9 @@ func TestUpdateTaskHandler(t *testing.T) {
 }
 
 func TestDeleteTaskHandler(t *testing.T) {
-	mockDB := &MockTaskStore{}
-	mockCache := &MockTaskCache{}
-	h := &Handler{DB: mockDB, Cache: mockCache}
+	mockDB := &mocks.MockTaskStore{}
+	mockCache := &mocks.MockTaskCache{}
+	h := &handler.Handler{DB: mockDB, Cache: mockCache}
 
 	tests := []struct {
 		name              string

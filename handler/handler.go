@@ -1,4 +1,4 @@
-package main
+package handler
 
 import (
 	"encoding/json"
@@ -16,8 +16,8 @@ import (
 )
 
 type Handler struct {
-	DB    bt.TaskStore
-	Cache bt.TaskCache
+	DB    db.TaskStore
+	Cache cache.TaskCache
 }
 
 func NewHandler() (*Handler, error) {
@@ -60,6 +60,7 @@ func (h *Handler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, db.ErrTaskAlreadyExists) {
 			http.Error(w, "Task already exists", http.StatusConflict)
 		} else {
+			log.Printf("Failed to insert task into DB: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to insert task into DB: %v", err), http.StatusInternalServerError)
 		}
 		return
@@ -88,6 +89,7 @@ func (h *Handler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 			if errors.Is(err, db.ErrTaskNotFound) {
 				http.Error(w, fmt.Sprintf("Task %d not found", id), http.StatusNotFound)
 			} else {
+				log.Printf("Failed to get task from DB: %v", err)
 				http.Error(w, fmt.Sprintf("Failed to get task from DB: %v", err), http.StatusInternalServerError)
 			}
 			return
@@ -106,6 +108,7 @@ func (h *Handler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetAllTasksHandler(w http.ResponseWriter, r *http.Request) {
 	tasks, err := h.DB.GetAllTasks()
 	if err != nil {
+		log.Printf("Failed to get all tasks from DB: %v", err)
 		http.Error(w, fmt.Sprintf("Failed to get all tasks from DB: %v", err), http.StatusInternalServerError)
 		return
 	}
@@ -142,6 +145,7 @@ func (h *Handler) UpdateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, db.ErrTaskNotFound) {
 			http.Error(w, fmt.Sprintf("Task %d not found", task.ID), http.StatusNotFound)
 		} else {
+			log.Printf("Failed to update task in DB: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to update task in DB: %v", err), http.StatusInternalServerError)
 		}
 		return
@@ -168,6 +172,7 @@ func (h *Handler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, db.ErrTaskNotFound) {
 			http.Error(w, fmt.Sprintf("Task %d not found", id), http.StatusNotFound)
 		} else {
+			log.Printf("Failed to delete task from DB: %v", err)
 			http.Error(w, fmt.Sprintf("Failed to delete from DB: %v", err), http.StatusInternalServerError)
 		}
 		return
