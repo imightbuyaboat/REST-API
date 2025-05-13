@@ -6,7 +6,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -15,11 +14,6 @@ type PostgresStore struct {
 }
 
 func NewPostgresStore() (*PostgresStore, error) {
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
-
 	psqlInfo := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 		os.Getenv("SQL_HOST"), os.Getenv("SQL_PORT"),
 		os.Getenv("SQL_USER"), os.Getenv("SQL_PASSWORD"),

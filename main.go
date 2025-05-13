@@ -7,9 +7,15 @@ import (
 	"restapi/handler"
 
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	h, err := handler.NewHandler()
 	if err != nil {
 		log.Fatal(err)

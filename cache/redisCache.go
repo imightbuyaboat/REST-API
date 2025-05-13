@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -20,11 +19,6 @@ type RedisCache struct {
 func NewRedisCache() (*RedisCache, error) {
 	rc := &RedisCache{}
 	rc.ctx = context.Background()
-
-	err := godotenv.Load()
-	if err != nil {
-		return nil, err
-	}
 
 	client := redis.NewClient(&redis.Options{
 		Addr:     os.Getenv("REDIS_HOST") + ":" + os.Getenv("REDIS_PORT"),
