@@ -1,10 +1,4 @@
-.PHONY: build run test docker-up docker-down
-
-build:
-	go build -o bin/app .
-
-run:
-	go run .
+.PHONY: test docker-up docker-down
 
 test:
 	go test ./tests

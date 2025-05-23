@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
@@ -19,19 +20,28 @@ func NewPostgresStore() (*PostgresStore, error) {
 		os.Getenv("SQL_USER"), os.Getenv("SQL_PASSWORD"),
 		os.Getenv("SQL_DB"))
 
-	db, err := sql.Open("postgres", psqlInfo)
+	var db *sql.DB
+	var err error
+
+	for i := 0; i < 10; i++ {
+		db, err = sql.Open("postgres", psqlInfo)
+		if err == nil {
+			err = db.Ping()
+			if err == nil {
+				break
+			}
+		}
+		log.Println("Failed to connect to bd: attemp", i+1)
+		time.Sleep(2 * time.Second)
+	}
+
 	if err != nil {
-		return nil, err
+		log.Fatalf("Failed to connect to bd: %v", err)
 	}
 
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(30 * time.Minute)
-
-	if err = db.Ping(); err != nil {
-		db.Close()
-		return nil, err
-	}
 
 	return &PostgresStore{db: db}, nil
 }
